@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:serenitybyfatima/sidebar.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -8,8 +11,33 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
+String Latitude = "", Longitude = "";
+List<String> recipents = [];
+
+void _sendSMS(String message, List<String> recipents) async {
+  String _result = await sendSMS(message: message, recipients: recipents)
+      .catchError((onError) {
+    print(onError);
+  });
+  print(_result);
+}
+
+Future<Position> getCurrentLocation() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    return Future.error("Location services are disabled");
+  }
+  LocationPermission permission = await Geolocator.checkPermission();
+
+  if (permission == LocationPermission.deniedForever) {
+    return Future.error("Location permissions are permanently denied.");
+  }
+  return await Geolocator.getCurrentPosition();
+}
+
 class _HomeState extends State<Home> {
   Contact? _contact;
+
   late TextEditingController textController = TextEditingController();
 
   final FlutterContactPicker _contactPicker = FlutterContactPicker();
@@ -17,6 +45,19 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+  }
+
+  void liveLocation() {
+    LocationSettings locationSettings = const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 100,
+    );
+    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (Position position) {
+        Latitude = position.latitude.toString();
+        Longitude = position.longitude.toString();
+      },
+    );
   }
 
   @override
@@ -69,14 +110,25 @@ class _HomeState extends State<Home> {
                 ),
                 onPressed: () async {
                   Contact? contact = await _contactPicker.selectContact();
+                  PermissionStatus status = await Permission.location.request();
+                  if (status.isGranted) {
+                    getCurrentLocation().then(
+                      (value) {
+                        Latitude = "${value.latitude}";
+                        Longitude = "${value.longitude}";
+                      },
+                    );
+                    liveLocation();
+                  }
                   setState(
                     () {
                       _contact = contact;
+
                       if (_contact == null) {
                         textController.text = "";
                       } else {
                         textController.text =
-                            "Hello ${_contact?.fullName?.toString()}. I think I am in danger! Please reach out to me at the location attached below!\nLocation here";
+                            "Hello ${_contact?.fullName?.toString()}. I think I am in danger! Please reach out to me at the location attached below!\nhttps://www.google.com/maps/search/?api=1&query-$Latitude,$Longitude";
                       }
                     },
                   );
@@ -108,7 +160,16 @@ class _HomeState extends State<Home> {
             SizedBox(
               width: MediaQuery.of(context).size.width - 60,
               child: MaterialButton(
-                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                onPressed: () {
+                  String Number =
+                      _contact!.phoneNumbers.toString().replaceAll("[", "");
+                  Number = Number.replaceAll("]", "");
+                  recipents.add(Number);
+                  _sendSMS(
+                    textController.text.toString(),
+                    recipents,
+                  );
+                },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

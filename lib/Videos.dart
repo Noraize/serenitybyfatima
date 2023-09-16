@@ -29,8 +29,7 @@ class _HomeState extends State<videopage> {
 
   Future<Widget?> _fetchMetadata(int index) async {
     final videoData = await YoutubeData.getData(videoURLs[index]);
-    print(videoData.title.toString());
-    //setState(() {});
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Card(

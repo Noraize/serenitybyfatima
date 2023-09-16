@@ -1,5 +1,5 @@
 name: serenitybyfatima
-description: A new Flutter project.
+description: Serenity By Fatima
 
 publish_to: "none"
 
@@ -15,12 +15,14 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  location: ^5.0.3
   animated_text_kit: ^4.2.2
   flutter_native_contact_picker: ^0.0.4
   youtube_video_info: ^1.0.2
   url_launcher: ^6.1.14
-  #sms_advanced: ^1.1.0
+  geolocator: ^10.0.1
+  permission_handler: ^11.0.0
+  flutter_sms:
+    path: /Users/noraizeaamir/Downloads/flutter_sms-master
 
 dev_dependencies:
   flutter_test:
