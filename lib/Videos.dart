@@ -3,6 +3,7 @@ import 'package:serenitybyfatima/URLLauncher.dart';
 import 'package:serenitybyfatima/sidebar.dart';
 import 'package:youtube_video_info/youtube.dart';
 
+final List<String> videoTitles = [];
 final List<String> videoURLs = [
   "https://www.youtube.com/watch?v=JJ5oH4PB368",
   "https://www.youtube.com/watch?v=E1YdLpa1HUo",
@@ -16,8 +17,6 @@ final List<String> videoURLs = [
   "https://www.youtube.com/watch?v=fBt-zXE0V5w"
 ];
 
-final List<String> videoTitles = [];
-
 class videopage extends StatefulWidget {
   const videopage({super.key});
   @override
@@ -29,7 +28,6 @@ class _HomeState extends State<videopage> {
 
   Future<Widget?> _fetchMetadata(int index) async {
     final videoData = await YoutubeData.getData(videoURLs[index]);
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Card(

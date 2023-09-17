@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:serenitybyfatima/sidebar.dart';
 import 'package:flutter_sms/flutter_sms.dart';
+import 'package:serenitybyfatima/sidebar.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
+
+String Latitude = "", Longitude = "";
+List<String> recipents = [];
+PermissionStatus status = PermissionStatus.granted;
+
+Future<void> getLoc() async {
+  status = await Permission.location.request();
+}
 
 class Home extends StatefulWidget {
   const Home({super.key});
   @override
   State<Home> createState() => _HomeState();
 }
-
-String Latitude = "", Longitude = "";
-List<String> recipents = [];
 
 void _sendSMS(String message, List<String> recipents) async {
   String _result = await sendSMS(message: message, recipients: recipents)
@@ -35,29 +40,38 @@ Future<Position> getCurrentLocation() async {
   return await Geolocator.getCurrentPosition();
 }
 
+void liveLocation() {
+  LocationSettings locationSettings = const LocationSettings(
+    accuracy: LocationAccuracy.high,
+    distanceFilter: 100,
+  );
+  Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+    (Position position) {
+      Latitude = position.latitude.toString();
+      Longitude = position.longitude.toString();
+    },
+  );
+}
+
 class _HomeState extends State<Home> {
   Contact? _contact;
-
   late TextEditingController textController = TextEditingController();
-
   final FlutterContactPicker _contactPicker = FlutterContactPicker();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  @override
-  void initState() {
-    super.initState();
-  }
 
-  void liveLocation() {
-    LocationSettings locationSettings = const LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 100,
-    );
-    Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position position) {
-        Latitude = position.latitude.toString();
-        Longitude = position.longitude.toString();
-      },
-    );
+  @override
+  initState() {
+    super.initState();
+    getLoc();
+    if (status.isGranted) {
+      getCurrentLocation().then(
+        (value) {
+          Latitude = "${value.latitude}";
+          Longitude = "${value.longitude}";
+        },
+      );
+      liveLocation();
+    }
   }
 
   @override
@@ -110,20 +124,9 @@ class _HomeState extends State<Home> {
                 ),
                 onPressed: () async {
                   Contact? contact = await _contactPicker.selectContact();
-                  PermissionStatus status = await Permission.location.request();
-                  if (status.isGranted) {
-                    getCurrentLocation().then(
-                      (value) {
-                        Latitude = "${value.latitude}";
-                        Longitude = "${value.longitude}";
-                      },
-                    );
-                    liveLocation();
-                  }
                   setState(
                     () {
                       _contact = contact;
-
                       if (_contact == null) {
                         textController.text = "";
                       } else {

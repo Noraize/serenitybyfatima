@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:serenitybyfatima/splashscreen.dart';
 
-void main() {
+Future<void> main() async {
   runApp(const MyApp());
 }
 
